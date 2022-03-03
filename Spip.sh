@@ -16,3 +16,4 @@ Rscript SPiPv2.1_main.r -I $input -O $output_vcf --VCF
 
 Rscript SPiPv1.0.r -I $input \
     -O $output_vcf --VCF -f $fasta -s $sam
+
