@@ -6,7 +6,7 @@ import os
 print("\nSPlice - curation_alamut GO!\n")
 
 print('IMPORT FICHIER INPUT BRUT')
-df = pandas.read_csv('EXPORT_3genes_SPIP_SPLICEAI.txt',\
+df = pandas.read_csv('EXPORT_3genes_SPIP_SPLICEAI_20220316.txt',\
     sep='\t', header=[0])
 
 print('CREATION INPUT SPIP')
@@ -50,8 +50,13 @@ print('** SPiP')
 df_spip_output = pandas.read_csv('spip_output.txt',\
     sep='\t', header=[0])
 
-df['Interpretation_SPiP_v2.1'] = df_spip_output['Interpretation']
-df['InterConfident_SPiP_v2.1'] = df_spip_output['InterConfident']
+colonnes = []
+for colonne in df_spip_output.columns:
+    colonnes.append(colonne)
+
+for nom_colonne in colonnes:
+    nom_colonne_spip = nom_colonne + '_SPiP_v2.1'
+    df[nom_colonne_spip] = df_spip_output[nom_colonne]
 
 print("** SpliceAI")
 vcf_reader = vcf.Reader(open('spliceai_output.vcf', 'r'))
@@ -62,6 +67,22 @@ for record in vcf_reader:
     spliceai_list.append(record.INFO)
 
 df['SpliceAI_v1.3'] = pandas.Series(spliceai_list)
-df.to_csv('EXPORT_3genes_SPIP_SPLICEAI_results.txt', index=None, sep='\t')
+
+# Split 
+df['SpliceAI_v1.3'] = df['SpliceAI_v1.3'].astype(str)
+
+info_brut = df['SpliceAI_v1.3'].str.split(pat="'", n=-1, expand=True)
+
+info_pipe = info_brut[3].str.split(pat="|", n=-1, expand=True)
+
+info_pipe.rename(columns = {0:'ALLELE_SpliceAI_v1.3',1:'SYMBOL_SpliceAI_v1.3',\
+2:'DS_AG_SpliceAI_v1.3',3:'DS_AL_SpliceAI_v1.3',4:'DS_DG_SpliceAI_v1.3',\
+5:'DS_DL_SpliceAI_v1.3', 6:'DP_AG_SpliceAI_v1.3', 7:'DP_AL_SpliceAI_v1.3',\
+8:'DP_DG_Splice_AI_v1.3', 9:'DP_DL_SpliceAI_v1.3'}, inplace = True)
+
+df_final = pandas.concat([df, info_pipe], axis=1)
+print(df_final)
+
+df_final.to_csv('EXPORT_3genes_SPIP_SPLICEAI_20220316_results.txt', index=None, sep='\t')
 
 print("\nJob done!\n")
